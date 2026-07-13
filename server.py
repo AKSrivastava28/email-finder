@@ -68,29 +68,22 @@ def stream_verify(name: str = Query(...), domain: str = Query(...)):
         
         # Case A: Network or Timeout error (typically Port 25 blocked)
         if "error" in catch_all_status:
-            is_blocked = ("timeout" in catch_all_status.lower() or 
-                          "connection refused" in catch_all_status.lower() or 
-                          "timed out" in catch_all_status.lower())
-            
-            if is_blocked:
-                yield f"data: {json.dumps({'event': 'port_blocked', 'hunter_key_present': bool(hunter_key)})}\n\n"
-                if not hunter_key:
-                    return
-                    
-                # Run Hunter.io database checking loop
-                for email in perms:
-                    yield f"data: {json.dumps({'event': 'testing_db', 'email': email})}\n\n"
-                    await asyncio.sleep(0.1) # tiny delay to let UI render the step
-                    status = check_hunter_io(email, hunter_key)
-                    
-                    if status == "valid":
-                        yield f"data: {json.dumps({'event': 'success', 'email': email, 'method': 'hunter'})}\n\n"
-                        return
-                yield f"data: {json.dumps({'event': 'fail', 'message': 'No verified email found in Hunter.io database.'})}\n\n"
-                return
-            else:
+            yield f"data: {json.dumps({'event': 'port_blocked', 'hunter_key_present': bool(hunter_key)})}\n\n"
+            if not hunter_key:
                 yield f"data: {json.dumps({'event': 'error', 'message': f'SMTP handshake failure: {catch_all_status}'})}\n\n"
                 return
+                
+            # Run Hunter.io database checking loop
+            for email in perms:
+                yield f"data: {json.dumps({'event': 'testing_db', 'email': email})}\n\n"
+                await asyncio.sleep(0.1) # tiny delay to let UI render the step
+                status = check_hunter_io(email, hunter_key)
+                
+                if status == "valid":
+                    yield f"data: {json.dumps({'event': 'success', 'email': email, 'method': 'hunter'})}\n\n"
+                    return
+            yield f"data: {json.dumps({'event': 'fail', 'message': 'No verified email found in Hunter.io database.'})}\n\n"
+            return
 
         # Case B: Domain is Catch-All
         if catch_all_status == "valid":

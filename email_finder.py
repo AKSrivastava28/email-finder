@@ -147,45 +147,40 @@ def run_finder(name, domain):
     catch_all_status = verify_smtp(test_catch_all_email, mx_host)
     
     if "error" in catch_all_status:
-        # Check if Port 25 is blocked
-        if "timeout" in catch_all_status.lower() or "connection refused" in catch_all_status.lower() or "timeout" in catch_all_status or "timed out" in catch_all_status:
-            print("\n" + "!"*50)
-            print(" [WARNING] SMTP Connection Timed Out / Refused (Port 25 blocked)!")
-            if hunter_key:
-                print(" Falling back to Hunter.io database check...")
-            else:
-                print(" We cannot verify active status without Port 25.")
-                print(" (Set 'HUNTER_API_KEY' in a '.env' file to run database verification).")
-            print("!"*50)
-            
-            if not hunter_key:
-                print("\nPlease try manually contacting using one of the generated combinations above.")
-                return
-            
-            # Hunter.io verification loop
-            valid_email = None
-            for email in perms:
-                print(f"  Checking database for {email} ... ", end="", flush=True)
-                status = check_hunter_io(email, hunter_key)
-                if status:
-                    print(status)
-                    if status == "valid":
-                        valid_email = email
-                        break
-                else:
-                    print("skipped (API limit or error)")
-            
-            print("\n" + "="*50)
-            if valid_email:
-                print(f" SUCCESS: Found verified email in Hunter.io database!")
-                print(f" ---> {valid_email} <---")
-            else:
-                print(" RESULT: No verified email found in Hunter.io database for these combinations.")
-            print("="*50 + "\n")
-            return
+        print("\n" + "!"*50)
+        print(f" [WARNING] SMTP Handshake Connection Error: {catch_all_status}")
+        if hunter_key:
+            print(" Falling back to Hunter.io database check...")
         else:
-            print(f"  Catch-all check failed with general network error: {catch_all_status}")
+            print(" We cannot verify active status without direct mail server access.")
+            print(" (Set 'HUNTER_API_KEY' in a '.env' file to run database verification).")
+        print("!"*50)
+        
+        if not hunter_key:
+            print("\nPlease try manually contacting using one of the generated combinations above.")
             return
+        
+        # Hunter.io verification loop
+        valid_email = None
+        for email in perms:
+            print(f"  Checking database for {email} ... ", end="", flush=True)
+            status = check_hunter_io(email, hunter_key)
+            if status:
+                print(status)
+                if status == "valid":
+                    valid_email = email
+                    break
+            else:
+                print("skipped (API limit or error)")
+        
+        print("\n" + "="*50)
+        if valid_email:
+            print(f" SUCCESS: Found verified email in Hunter.io database!")
+            print(f" ---> {valid_email} <---")
+        else:
+            print(" RESULT: No verified email found in Hunter.io database for these combinations.")
+        print("="*50 + "\n")
+        return
 
     if catch_all_status == "valid":
         print("\n" + "-"*50)
