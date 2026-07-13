@@ -51,8 +51,8 @@ def stream_verify(name: str = Query(...), domain: str = Query(...)):
         await asyncio.sleep(0.2)
         
         # Load API Key if available
-        hunter_key = None
-        if os.path.exists(".env"):
+        hunter_key = os.getenv("HUNTER_API_KEY")
+        if not hunter_key and os.path.exists(".env"):
             try:
                 with open(".env", "r") as f:
                     for line in f:

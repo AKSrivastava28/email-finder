@@ -107,8 +107,8 @@ def run_finder(name, domain):
     print("="*50)
 
     # Load API key
-    hunter_key = None
-    if os.path.exists(".env"):
+    hunter_key = os.getenv("HUNTER_API_KEY")
+    if not hunter_key and os.path.exists(".env"):
         try:
             with open(".env", "r") as f:
                 for line in f:
