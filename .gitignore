@@ -1,0 +1,28 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Database
+*.sqlite
+*.db
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# spaCy models
+en_core_web_sm/
+
+# IDE files
+.vscode/
+.idea/
+
+# Node dependencies
+node_modules/
+dist/
